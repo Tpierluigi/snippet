@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 #imposto un dataframe e ci eseguo la query
 client = DataFrameClient('mioserver.com', 8086, 'utente', 'password', 'nomedb')
 result = client.query("""SELECT mean(value) FROM "cpu_load_short" 
-                          WHERE time >= now() 
-                          AND time < now() -1d
+                          WHERE time >= now() -1d
+                          AND time < now() 
                           GROUP BY time(15s) fill(null)""")
 #controllo di avere dati (deve esistere la misura selezionata)
 if 'cpu_load_short' in result:
