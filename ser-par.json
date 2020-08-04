@@ -1,0 +1,484 @@
+[
+    {
+        "id": "267f6c5c.bd0c14",
+        "type": "subflow",
+        "name": "Prepara il vettore iniziale",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 0,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "ac842b95.9a14c8"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 380,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "ac842b95.9a14c8",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [],
+        "color": "#DDAA99"
+    },
+    {
+        "id": "ac842b95.9a14c8",
+        "type": "function",
+        "z": "267f6c5c.bd0c14",
+        "name": "prepara il vettore iniziale",
+        "func": "/*\ncontrollo se ci sono le condizioni per iniziare le operazioni \ned imposto un array di 100 elementi con dei valori iniziali\n*/\n\nvar semaforo = global.get(\"semaforo\")||false\nif (!semaforo){\n    global.set(\"semaforo\",true)\n    msg.payload=new Array(100).fill(0).map((e,i) => i)\n    return msg;    \n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 190,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "358e1b9b.83dd74",
+        "type": "subflow",
+        "name": "Elaborazione dati",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 20,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "351a913d.e13e3e"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 640,
+                "y": 100,
+                "wires": [
+                    {
+                        "id": "bc74adfe.ea9df",
+                        "port": 1
+                    }
+                ]
+            }
+        ],
+        "env": [],
+        "color": "#DDAA99",
+        "status": {
+            "x": 640,
+            "y": 40,
+            "wires": [
+                {
+                    "id": "bc74adfe.ea9df",
+                    "port": 0
+                }
+            ]
+        }
+    },
+    {
+        "id": "351a913d.e13e3e",
+        "type": "function",
+        "z": "358e1b9b.83dd74",
+        "name": "elaborazione dati",
+        "func": "/*\nnon disponendo di un database, simulo un'operazione di una certa \ndurata su un server tramite una fonzione che viene eseguita \ndopo un tempo variabile e che simula il termine della connessione\nal server ed il recupero dei risultati\n*/\nvar tempo = Math.random()*3000\n//memorizzo a livello globale il numero di connessioni sul DB\nvar connessioni=global.get(\"connessioni\")||0\nvar elabora = function() {\n    //simulo l'acquisizione dei risultati dal server\n    msg.payload=msg.payload.map((el,ind) => {\n        return \"indice :\" + el.toString().padStart(3,'0') + \n            \" valore :\" + tempo.toString().padStart(4,'0');\n    })\n    //simulo il rilascio della connessione \n    var connessioni=global.get(\"connessioni\")||0\n    connessioni--\n    global.set(\"connessioni\",connessioni)\n    /*\n    emetto due messaggi: uno per l'aggiornamento di stato del subflow,\n    uno per la prosecuzionwe delle operazioni\n    */\n    node.send({topic:\"connessioni\",payload:{text:\"connessioni attive: \" + connessioni}})\n    node.send(msg);\n}\n/*\nsimulo la connessione al server, usando un contatore\nglobale di connessioni. anche qui emetto due messaggi, uno per\nl'aggiornamento stato ed uno per la prosecuzione delle operazioni.\n*/\nconnessioni++\nnode.send({topic:\"connessioni\",payload:{text:\"connessioni attive: \" + connessioni}})\nglobal.set(\"connessioni\",connessioni)\n\n// imposto il timeout per la funzione di ritorno\nsetTimeout(elabora,tempo)\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 190,
+        "y": 80,
+        "wires": [
+            [
+                "bc74adfe.ea9df"
+            ]
+        ]
+    },
+    {
+        "id": "bc74adfe.ea9df",
+        "type": "switch",
+        "z": "358e1b9b.83dd74",
+        "name": "aggiorna stato o risultati",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "connessioni",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 430,
+        "y": 80,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "5af3d878.4983b8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "3cd48c83.d5e3c4",
+        "type": "inject",
+        "z": "5af3d878.4983b8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 100,
+        "y": 200,
+        "wires": [
+            [
+                "5ea1d16e.e3825"
+            ]
+        ]
+    },
+    {
+        "id": "70cb52b0.7df09c",
+        "type": "split",
+        "z": "5af3d878.4983b8",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": "10",
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 510,
+        "y": 420,
+        "wires": [
+            [
+                "8155e1e.956762"
+            ]
+        ]
+    },
+    {
+        "id": "8155e1e.956762",
+        "type": "subflow:358e1b9b.83dd74",
+        "z": "5af3d878.4983b8",
+        "name": "",
+        "env": [],
+        "x": 630,
+        "y": 500,
+        "wires": [
+            [
+                "1494b002.053da"
+            ]
+        ]
+    },
+    {
+        "id": "fd553620.5e87c8",
+        "type": "function",
+        "z": "5af3d878.4983b8",
+        "name": "inizializza ciclo",
+        "func": "msg.numElementi = 10;\nmsg.indice = 0;\nmsg.datiInput = msg.payload\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 560,
+        "y": 200,
+        "wires": [
+            [
+                "7c8200d3.92e9"
+            ]
+        ]
+    },
+    {
+        "id": "7c8200d3.92e9",
+        "type": "function",
+        "z": "5af3d878.4983b8",
+        "name": "estrae un sottoinsieme",
+        "func": "msg.payload=msg.datiInput.slice(msg.indice,msg.indice+msg.numElementi-1)\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 780,
+        "y": 200,
+        "wires": [
+            [
+                "f2e2f7a5.1e4ee8"
+            ]
+        ]
+    },
+    {
+        "id": "f2e2f7a5.1e4ee8",
+        "type": "subflow:358e1b9b.83dd74",
+        "z": "5af3d878.4983b8",
+        "name": "",
+        "env": [],
+        "x": 1010,
+        "y": 200,
+        "wires": [
+            [
+                "1f6eb326.1fc3ad"
+            ]
+        ]
+    },
+    {
+        "id": "1f6eb326.1fc3ad",
+        "type": "function",
+        "z": "5af3d878.4983b8",
+        "name": "passa alla sezione successiva",
+        "func": "msg.payload.map((el,ind) => msg.datiInput[msg.indice+ind]=el )\n\nif (msg.indice < msg.datiInput.length){\n    msg.indice+=msg.numElementi\n    return [null,msg];\n}\nmsg.payload=msg.datiInput\nreturn [msg,null]",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 830,
+        "y": 120,
+        "wires": [
+            [
+                "74c538b0.35e978"
+            ],
+            [
+                "7c8200d3.92e9"
+            ]
+        ]
+    },
+    {
+        "id": "d4f550ce.3c81d",
+        "type": "debug",
+        "z": "5af3d878.4983b8",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1190,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "1494b002.053da",
+        "type": "join",
+        "z": "5af3d878.4983b8",
+        "name": "",
+        "mode": "auto",
+        "build": "string",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "accumulate": "false",
+        "timeout": "",
+        "count": "",
+        "reduceRight": false,
+        "x": 770,
+        "y": 560,
+        "wires": [
+            [
+                "d62863d8.991bb"
+            ]
+        ]
+    },
+    {
+        "id": "3e44e5f3.57603a",
+        "type": "debug",
+        "z": "5af3d878.4983b8",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1110,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "5ea1d16e.e3825",
+        "type": "subflow:267f6c5c.bd0c14",
+        "z": "5af3d878.4983b8",
+        "name": "",
+        "env": [],
+        "x": 310,
+        "y": 200,
+        "wires": [
+            [
+                "fd553620.5e87c8"
+            ]
+        ]
+    },
+    {
+        "id": "4c597abb.183974",
+        "type": "inject",
+        "z": "5af3d878.4983b8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 100,
+        "y": 420,
+        "wires": [
+            [
+                "fec7a509.860268"
+            ]
+        ]
+    },
+    {
+        "id": "fec7a509.860268",
+        "type": "subflow:267f6c5c.bd0c14",
+        "z": "5af3d878.4983b8",
+        "name": "",
+        "env": [],
+        "x": 310,
+        "y": 420,
+        "wires": [
+            [
+                "70cb52b0.7df09c"
+            ]
+        ]
+    },
+    {
+        "id": "5b47c6e9.66c708",
+        "type": "comment",
+        "z": "5af3d878.4983b8",
+        "name": "ciclo sequenziale: l'array dei dati viene diviso in segmenti i quali vengono processati uno alla volta",
+        "info": "",
+        "x": 370,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "c5aa3d62.33b94",
+        "type": "comment",
+        "z": "5af3d878.4983b8",
+        "name": "il numero di connessioni simulate non supera mai l'unità",
+        "info": "",
+        "x": 240,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "aa9af9a4.504288",
+        "type": "comment",
+        "z": "5af3d878.4983b8",
+        "name": "Ciclo parallelo: l'array viene diviso e le singole componenti vengono processate insieme",
+        "info": "",
+        "x": 340,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "55997d52.a167c4",
+        "type": "comment",
+        "z": "5af3d878.4983b8",
+        "name": "il numero di connessioni arriva subito ad un valore pari al numero di segmenti in cui viene diviso l'array e man mano che l'attività sul database termina, si porta a 0",
+        "info": "",
+        "x": 570,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "d62863d8.991bb",
+        "type": "change",
+        "z": "5af3d878.4983b8",
+        "name": "libera semaforo",
+        "rules": [
+            {
+                "t": "set",
+                "p": "semaforo",
+                "pt": "global",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 920,
+        "y": 560,
+        "wires": [
+            [
+                "3e44e5f3.57603a"
+            ]
+        ]
+    },
+    {
+        "id": "74c538b0.35e978",
+        "type": "change",
+        "z": "5af3d878.4983b8",
+        "name": "libera semaforo",
+        "rules": [
+            {
+                "t": "set",
+                "p": "semaforo",
+                "pt": "global",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1000,
+        "y": 60,
+        "wires": [
+            [
+                "d4f550ce.3c81d"
+            ]
+        ]
+    }
+]
